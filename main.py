@@ -112,6 +112,90 @@ def reset_changes():
         image_label_page2.config(image=photo_page2)
         image_label_page2.image = photo_page2
 
+#odev2 fonksiyonları
+def open_file_page3():
+    filename = filedialog.askopenfilename(filetypes=[("Image files", "*.png;*.jpg;*.jpeg")])
+    if filename:
+        file_label_page3.config(text="Seçilen dosya: " + filename)
+        display_image_page3(filename)
+        # Küçültülmüş ve büyütülmüş hallerini göster
+        display_resized_images(filename, 0.5, "Küçültülmüş")  # Örneğin, %50 küçültme
+        display_resized_images(filename, 2.0, "Büyütülmüş")  # Örneğin, 2 kat büyütme
+
+
+def display_image_page3(filename):
+    global image_page3, original_image_page3
+    image_page3 = Image.open(filename)
+    original_image_page3 = image_page3.copy()  # Orijinal resmi sakla
+    photo = ImageTk.PhotoImage(image_page3)
+    image_label_page3.config(image=photo)
+    image_label_page3.image = photo
+
+def display_resized_images(filename, scale_factor, title):
+    global image_page3, original_image_page3
+    image_page3 = Image.open(filename)
+    original_image_page3 = image_page3.copy()  # Orijinal resmi sakla
+    resized_image = resize_image(image_page3, scale_factor)
+    photo = ImageTk.PhotoImage(resized_image)
+    
+    # Başlık etiketi oluştur
+    title_label = Label(frame_page3, text=title, bg="#D2F5E3")
+    title_label.pack()  # .pack() yöntemiyle yerleştir
+    
+    # Resim etiketi oluştur
+    image_label = Label(frame_page3, image=photo, bg="#D2F5E3")
+    image_label.image = photo
+    image_label.pack(pady=10)  # .pack() yöntemiyle yerleştir
+
+
+def apply_image_processing_page3(func):
+    global image_page3, photo_page3
+    if image_page3:
+        image_page3 = func(image_page3)
+        photo_page3 = ImageTk.PhotoImage(image_page3)
+        image_label_page3.config(image=photo_page3)
+        image_label_page3.image = photo_page3
+
+def resize_image(image, scale_factor):
+    width, height = image.size
+    new_width = int(width * scale_factor)
+    new_height = int(height * scale_factor)
+    resized_image = Image.new("RGB", (new_width, new_height))
+    
+    for y in range(new_height):
+        for x in range(new_width):
+            # Yeni konumun orijinal görüntüdeki karşılığı
+            src_x = x / scale_factor
+            src_y = y / scale_factor
+            
+            # Yakınsama işlemi için dört köşe pikselin koordinatları
+            x0 = int(src_x)
+            x1 = min(x0 + 1, width - 1)
+            y0 = int(src_y)
+            y1 = min(y0 + 1, height - 1)
+            
+            # Interpolasyon için ağırlıkların hesaplanması
+            dx = src_x - x0
+            dy = src_y - y0
+            
+            # Köşe piksellerin renk değerlerinin alınması
+            p00 = image.getpixel((x0, y0))
+            p01 = image.getpixel((x0, y1))
+            p10 = image.getpixel((x1, y0))
+            p11 = image.getpixel((x1, y1))
+            
+            # Bilinear interpolasyonun hesaplanması
+            new_pixel = (
+                int((1 - dx) * (1 - dy) * p00[0] + dx * (1 - dy) * p10[0] + (1 - dx) * dy * p01[0] + dx * dy * p11[0]),
+                int((1 - dx) * (1 - dy) * p00[1] + dx * (1 - dy) * p10[1] + (1 - dx) * dy * p01[1] + dx * dy * p11[1]),
+                int((1 - dx) * (1 - dy) * p00[2] + dx * (1 - dy) * p10[2] + (1 - dx) * dy * p01[2] + dx * dy * p11[2])
+            )
+            
+            # Yeni pikselin konumuna ekleme
+            resized_image.putpixel((x, y), new_pixel)
+    
+    return resized_image
+
 window = Tk()
 window.title('Görüntü İşleme Arabirimi')
 window.geometry('800x800+700+25')
@@ -121,9 +205,11 @@ notebook = ttk.Notebook(window)
 
 page1 = Frame(notebook, bg="#D2F5E3")
 page2 = Frame(notebook, bg="#D2F5E3")
+page3 = Frame(notebook, bg="#D2F5E3")
 
 notebook.add(page1, text='Aynalama')
 notebook.add(page2, text='Noktasal İşlemler')
+notebook.add(page3, text='Küçültme Büyütme')
 
 notebook.pack(expand=True, fill='both')
 
@@ -181,5 +267,22 @@ negative_button.pack(pady=30)
 
 reset_button = Button(image_frame, text="Değişiklikleri sıfırla", command=reset_changes, bg="#FF8984", fg="white")
 reset_button.pack(pady=30)
+
+# odev2 sayfa içeriği
+frame_page3 = Frame(page3, bg="#D2F5E3")
+frame_page3.pack(fill="both", expand=True)
+
+file_button_page3 = Button(frame_page3, text="Dosya Seç", command=open_file_page3, bg="#27AE60", fg="white")
+file_button_page3.pack(pady=10)
+
+file_label_page3 = Label(frame_page3, text="Seçilen dosya: ", bg="#D2F5E3")
+file_label_page3.pack()
+
+image_label_page3 = Label(frame_page3, bg="#B7D7D8")
+image_label_page3.pack(side="top")
+
+image_label_page3_aynalanan = Label(frame_page3, bg="#D2F5E3")
+image_label_page3_aynalanan.pack()
+
 
 window.mainloop()
