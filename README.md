@@ -18,5 +18,6 @@ Kullanılan noktasal işlemler:
 •	Negatif Alma 
    Görselin hemen altında bulunan “Değişiklikleri sıfırlama” butonu ile de görsel orijinal haline döndürülüyor.
 
- 
+ Küçültme Büyütme Sayfası
+ Bu sayfada hazır kütüphane kullanmaksızın bilinear interpolasyon yöntemi kullanarak dosyalardan seçilen görüntünün yeniden boyutlandırılması gerçekleştiriliyor.
  
